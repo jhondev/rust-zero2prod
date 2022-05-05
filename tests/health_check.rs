@@ -8,7 +8,8 @@ use std::net::TcpListener;
 
 // Launch our application in the background ~somehow~
 fn spawn_app() -> String {
-    let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind address");
+    let svr_addr = "127.0.0.1";
+    let listener = TcpListener::bind(format!("{svr_addr}:0")).expect("Failed to bind address");
     let port = listener.local_addr().unwrap().port();
     let server = zero2prod::run(listener).expect("Failed to start server");
     // Launch the server as a background task
@@ -16,7 +17,7 @@ fn spawn_app() -> String {
     // but we have no use for it here, hence the non-binding let
     let _ = tokio::spawn(server);
 
-    format!("http://127:0.0.1:{}", port)
+    format!("http://{svr_addr}:{port}")
 }
 
 #[tokio::test]
@@ -28,7 +29,7 @@ async fn health_check_works() {
     // Act
     println!("{server_addr}/health_check");
     let response = client
-        .get(&format!("{}/health_check", &server_addr))
+        .get(format!("{server_addr}/health_check"))
         .send()
         .await
         .expect("Failed to execute request");
